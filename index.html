@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: linear-gradient(to bottom, #a1c4fd, #c2e9fb);
+            overflow: hidden;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+
+        #container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 主按钮样式 */
+        #mainButton {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            color: #555;
+            border: 2px solid #fff;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+            #mainButton:hover {
+                transform: translate(-50%, -50%) scale(1.1) rotate(-2deg);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+                color: #ff6b6b;
+            }
+
+            #mainButton:active {
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+
+        /* --- 云朵气泡基础样式 --- */
+        .cloud-bubble {
+            position: absolute;
+            padding: 20px 25px;
+            z-index: 90;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #444;
+            max-width: 260px; /* 普通云朵最大宽度（不含padding） */
+            text-align: center;
+            transform: scale(0);
+            opacity: 0;
+            animation: popInCloud 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatCloud 3s ease-in-out infinite;
+            animation-delay: 0s, 0.5s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            backdrop-filter: blur(2px);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.05), 5px 10px 15px rgba(0,0,0,0.1);
+            transition: opacity 0.5s, transform 0.5s;
+            align-items: center;
+            word-break: break-word;
+        }
+
+            /* --- 视频云朵特殊样式 (更宽) --- */
+            .cloud-bubble.has-video {
+                max-width: 320px; /* 视频云朵最大宽度 */
+                padding: 15px;
+                gap: 10px;
+            }
+
+        .video-wrapper {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-top: 5px;
+            position: relative;
+            z-index: 2;
+        }
+
+            .video-wrapper video {
+                width: 100%;
+                height: auto;
+                display: block;
+                max-height: 220px; /* 限制视频最大高度 */
+            }
+
+        /* 云朵装饰伪元素 */
+        .cloud-bubble::before,
+        .cloud-bubble::after {
+            content: '';
+            position: absolute;
+            background-color: inherit;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(1px);
+        }
+
+        .cloud-bubble::before {
+            width: 60%;
+            height: 170%;
+            top: -40%;
+            left: 10%;
+            transform: rotate(-15deg);
+        }
+
+        .cloud-bubble::after {
+            width: 70%;
+            height: 180%;
+            top: -50%;
+            right: 10%;
+            transform: rotate(15deg);
+        }
+
+        .cloud-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            background: rgba(255,255,255,0.5);
+            padding: 2px 10px;
+            border-radius: 10px;
+            align-self: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 2;
+        }
+
+        .cloud-text {
+            font-weight: normal;
+            word-wrap: break-word;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+            z-index: 2;
+        }
+
+        @keyframes popInCloud {
+            0% {
+                transform: scale(0) translateY(20px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes floatCloud {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-10px) scale(1.02);
+            }
+        }
+
+        /* --- 最终祝福特殊样式 (居中覆盖) --- */
+        .cloud-bubble.final-cloud {
+            z-index: 2000 !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            border: 2px solid #ffd700;
+            font-weight: bold;
+            color: #ff6b6b;
+            max-width: 400px;
+            padding: 30px;
+            transform: translate(-50%, -50%) scale(0);
+            animation: popInCenter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatCenter 3s ease-in-out infinite;
+            animation-delay: 0s, 0.5s;
+        }
+
+        .final-cloud .cloud-name {
+            color: #ff6b6b;
+            font-size: 20px;
+            background: rgba(255, 215, 0, 0.2);
+            padding: 5px 15px;
+        }
+
+        .final-cloud .cloud-text {
+            font-size: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        @keyframes popInCenter {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes floatCenter {
+            0%, 100% {
+                transform: translate(-50%, -50%) translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) translateY(-10px) scale(1.02);
+            }
+        }
+
+        /* 其他特效 */
+        .cake {
+            position: absolute;
+            font-size: 30px;
+            user-select: none;
+            z-index: 10;
+            animation: floatDown linear forwards;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+        }
+
+        @keyframes floatDown {
+            to {
+                transform: translateY(110vh) rotate(360deg);
+            }
+        }
+
+        .firework {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 20;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        #hearts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 24px;
+            color: #ff6b6b;
+            animation: floatHeart 5s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100px) rotate(720deg) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        .bg-cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            filter: blur(20px);
+            z-index: 1;
+            animation: driftCloud linear infinite;
+        }
+
+        @keyframes driftCloud {
+            from {
+                transform: translateX(-100px);
+            }
+
+            to {
+                transform: translateX(110vw);
+            }
+        }
+
+        .fade-out {
+            opacity: 0 !important;
+            transform: scale(0.8) !important;
+            animation: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <!-- 背景装饰云 -->
+        <div class="bg-cloud" style="width: 300px; height: 100px; top: 10%; left: -20%; animation-duration: 25s;"></div>
+        <div class="bg-cloud" style="width: 400px; height: 140px; top: 30%; left: -30%; animation-duration: 35s; animation-delay: -10s;"></div>
+        <div class="bg-cloud" style="width: 250px; height: 80px; top: 70%; left: -10%; animation-duration: 20s; animation-delay: -5s;"></div>
+
+        <button id="mainButton">☁️</button>
+        <div id="hearts"></div>
+    </div>
+
+    <!-- 背景音乐 -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="audios/bgm.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // ================= 配置区域 =================
+        const birthdayMessages = [
+
+            { name: "王超钟钟一家", text: "生日快乐", type: "video", src: "audios/王超钟钟一家.mp4" },
+            { name: "黄黄", text: "人生没有最好的年纪，只有最好的状态。小燕儿，生日快乐哟，记得要天天开心！", type: "audio", src: "audios/黄黄.mp3" },
+            { name: "汉川", text: "嗨，小燕子，祝你新的一岁吃不胖，睡得香，钱够花，天天开心，生日快乐啊！", type: "audio", src: "audios/汉川.mp3" },
+            { name: "婉钰", text: "小燕阿姨，生日快乐，天天开心！", type: "audio", src: "audios/婉钰.mp3" },
+            { name: "谨宁", text: "小燕，祝你生日快乐，老朋友新的一岁祝你平安顺心，开心漂亮！然后新的一年过的越来越好，然后也祝你们一家人幸福美满。然后有空了咱再聚聚！", type: "audio", src: "audios/谨宁.mp3" },
+            { name: "琤霖", text: "小燕，生日快乐呀，祝你新的一岁事事顺心，天天开心！", type: "audio", src: "audios/琤霖.mp3" },
+            { name: "妈妈", text: "祝女儿生日快乐！", type: "audio", src: "audios/妈妈1.mp3" },
+            { name: "爸爸", text: "女儿生日快乐！", type: "audio", src: "audios/爸爸.mp3" },
+            { name: "大哥", text: "祝小燕生日快乐！", type: "audio", src: "audios/大哥.mp3" },
+            { name: "大嫂", text: "小燕子，生日快乐！感谢你那么多年对我们一家的付出，辛苦啦！", type: "audio", src: "audios/大嫂.mp3" },
+            { name: "许诗琦", text: "大娘，生日快乐！", type: "audio", src: "audios/许诗琦.mp3" },
+            { name: "许诗豪", text: "祝大娘生日快乐！", type: "audio", src: "audios/许诗豪.mp3" },
+            { name: "许诗文", text: "祝大娘生日快乐！", type: "audio", src: "audios/许诗文.mp3" },
+            { name: "闪闪", text: "妈妈！生日快乐！", type: "audio", src: "audios/闪闪.mp3" },
+            { name: "妈妈", text: "儿媳妇小燕，生日快乐！", type: "audio", src: "audios/妈妈2.mp3" },
+            { name: "海灵", text: "生日快乐！", type: "audio", src: "audios/海灵.mp3" },
+            { name: "小王", text: "大王，生日快乐哦！希望你以后一直都能罩住我哦，我的以后就靠你了！", type: "audio", src: "audios/小王.mp3" }
+        ];
+
+        const cloudColors = [
+            "rgba(255, 255, 255, 0.95)",
+            "rgba(230, 245, 255, 0.95)",
+            "rgba(255, 240, 245, 0.95)",
+            "rgba(245, 240, 255, 0.95)",
+            "rgba(240, 255, 250, 0.95)"
+        ];
+
+        const BG_VOLUME_NORMAL = 0.5;
+        const BG_VOLUME_DUCKING = 0.2;
+
+        // 碰撞检测常量 (使用保守估计，确保不重叠)
+        const BASE_WIDTH = 300;       // 普通云朵估算总宽 (padding+max-width约310，取300保守)
+        const BASE_HEIGHT = 240;      // 普通云朵估算总高 (两行文字+名字约200-240)
+        const VIDEO_WIDTH = 360;      // 视频云朵估算总宽 (max-width:320+padding ≈370，取360)
+        const VIDEO_HEIGHT = 340;     // 视频云朵估算总高 (视频区域+文字)
+        const BUTTON_SAFE_RADIUS = 180; // 按钮禁区半径
+        const MAX_ATTEMPTS = 800;      // 大幅增加尝试次数，力争不重叠
+        const GAP = 15;                // 云朵之间最小间隙
+
+        const mainButton = document.getElementById('mainButton');
+        const bgMusic = document.getElementById('bgMusic');
+        const heartsContainer = document.getElementById('hearts');
+        const container = document.getElementById('container');
+
+        let currentIndex = 0;
+        let messagesOnScreen = [];      // 存储所有已显示云朵信息 { element, left, top, width, height }
+        let currentAudioObj = null;
+        let currentVideoObj = null;
+        let isMusicStarted = false;
+        let finalShown = false;         // 防止多次显示最终云朵
+
+        bgMusic.volume = BG_VOLUME_NORMAL;
+
+        // 播放单句音频
+        function playAudio(audioPath) {
+            if (!audioPath) return;
+            if (currentVideoObj) {
+                currentVideoObj.pause();
+                currentVideoObj = null;
+            }
+            if (currentAudioObj) {
+                currentAudioObj.pause();
+                currentAudioObj.currentTime = 0;
+                currentAudioObj = null;
+            }
+            try {
+                const audio = new Audio(audioPath);
+                currentAudioObj = audio;
+                bgMusic.volume = BG_VOLUME_DUCKING;
+                audio.play().catch(e => console.warn("音频播放需交互:", e));
+                audio.onended = () => {
+                    currentAudioObj = null;
+                    bgMusic.volume = BG_VOLUME_NORMAL;
+                };
+            } catch (e) {
+                console.error("音频错误:", e);
+                bgMusic.volume = BG_VOLUME_NORMAL;
+            }
+        }
+
+        // 检查矩形是否与按钮重叠 (基于按钮中心点+半径，或者精确矩形？这里使用中心点距离)
+        function isOverlapButton(rect) {
+            const btnRect = mainButton.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+            // 计算云朵矩形最近距离到按钮中心的距离
+            const closestX = Math.max(rect.left, Math.min(btnCenterX, rect.right));
+            const closestY = Math.max(rect.top, Math.min(btnCenterY, rect.bottom));
+            const dx = btnCenterX - closestX;
+            const dy = btnCenterY - closestY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            return dist < BUTTON_SAFE_RADIUS;
+        }
+
+        // 检查新云朵矩形是否与已有云朵重叠 (考虑间隙GAP)
+        function isOverlapExisting(newRect, excludeElement = null) {
+            for (let cloud of messagesOnScreen) {
+                if (excludeElement && cloud.element === excludeElement) continue;
+                const oldRect = {
+                    left: cloud.left,
+                    top: cloud.top,
+                    right: cloud.left + cloud.width,
+                    bottom: cloud.top + cloud.height
+                };
+                // 判断两个矩形是否间隔小于GAP（即重叠或太近）
+                if (!(newRect.right + GAP < oldRect.left || newRect.left > oldRect.right + GAP ||
+                    newRect.bottom + GAP < oldRect.top || newRect.top > oldRect.bottom + GAP)) {
+                    return true; // 重叠或太近
+                }
+            }
+            return false;
+        }
+
+        // 测量云朵实际尺寸（通过临时渲染）
+        function measureCloudSize(item) {
+            // 创建临时云朵，样式不可见，放在屏幕外测量
+            const temp = document.createElement('div');
+            temp.className = 'cloud-bubble';
+            if (item.type === 'video') temp.classList.add('has-video');
+            // 随机背景色（仅用于测量，颜色无关紧要）
+            temp.style.backgroundColor = 'rgba(255,255,255,0.95)';
+            temp.style.position = 'absolute';
+            temp.style.left = '-9999px';
+            temp.style.top = '-9999px';
+            temp.style.opacity = '0';
+            temp.style.animation = 'none';
+            temp.style.transform = 'scale(1)';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'cloud-name';
+            nameDiv.textContent = item.name;
+            temp.appendChild(nameDiv);
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'cloud-text';
+            textDiv.textContent = item.text;
+            temp.appendChild(textDiv);
+
+            if (item.type === 'video' && item.src) {
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
+                const video = document.createElement('video');
+                // 测量时不需要实际视频，但为了占位，加一个占位元素？直接留空可能高度为0
+                // 为了模拟高度，我们添加一个占位元素设定类似比例
+                video.style.width = '100%';
+                video.style.height = 'auto';
+                video.style.minHeight = '160px'; // 给一个估算高度，确保测量不太小
+                videoWrapper.appendChild(video);
+                temp.appendChild(videoWrapper);
+            }
+
+            container.appendChild(temp);
+            const rect = temp.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            container.removeChild(temp);
+            return { width, height };
+        }
+
+        // 显示云朵（支持防重叠铺满）
+        function showCloudAtRandomPosition(item, isFinal = false) {
+            // 最终祝福：居中显示（允许覆盖，z-index高）
+            if (isFinal) {
+                if (finalShown) return; // 只显示一次
+                finalShown = true;
+
+                const bubble = document.createElement('div');
+                bubble.className = 'cloud-bubble final-cloud';
+                bubble.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'cloud-name';
+                nameDiv.textContent = item.name;
+                const textDiv = document.createElement('div');
+                textDiv.className = 'cloud-text';
+                textDiv.textContent = item.text;
+
+                bubble.appendChild(nameDiv);
+                bubble.appendChild(textDiv);
+
+                bubble.style.left = '50%';
+                bubble.style.top = '50%';
+                container.appendChild(bubble);
+
+                // 最终云朵也加入记录（但不再用于碰撞，以防影响后续？但后续无新云朵了）
+                // 为了完整性，记录一下但不用于碰撞（因为它是覆盖的）
+                setTimeout(() => {
+                    const rect = bubble.getBoundingClientRect();
+                    messagesOnScreen.push({
+                        element: bubble,
+                        left: parseFloat(bubble.style.left) - rect.width / 2, // 实际左上角需要计算？居中定位是left:50%，实际left是百分比
+                        top: parseFloat(bubble.style.top) - rect.height / 2,
+                        width: rect.width,
+                        height: rect.height
+                    });
+                }, 100); // 延迟等待动画完成？其实不用于后续检测，无所谓
+                return;
+            }
+
+            // --- 普通云朵：防重叠放置 ---
+            // 1. 测量该云朵实际尺寸
+            const { width: realW, height: realH } = measureCloudSize(item);
+            // 如果测量值异常（比如视频占位导致太小），使用保守估计
+            let cloudW = realW > 20 ? realW : (item.type === 'video' ? VIDEO_WIDTH : BASE_WIDTH);
+            let cloudH = realH > 20 ? realH : (item.type === 'video' ? VIDEO_HEIGHT : BASE_HEIGHT);
+
+            // 2. 尝试寻找不重叠位置
+            let posX, posY;
+            let found = false;
+            let attempts = 0;
+
+            while (!found && attempts < MAX_ATTEMPTS) {
+                posX = Math.random() * (window.innerWidth - cloudW - 40) + 20;
+                posY = Math.random() * (window.innerHeight - cloudH - 40) + 20;
+
+                const newRect = {
+                    left: posX,
+                    top: posY,
+                    right: posX + cloudW,
+                    bottom: posY + cloudH
+                };
+
+                // 避开按钮
+                if (isOverlapButton(newRect)) {
+                    attempts++;
+                    continue;
+                }
+
+                // 不与已有云朵重叠
+                if (!isOverlapExisting(newRect)) {
+                    found = true;
+                    break;
+                }
+                attempts++;
+            }
+
+            // 如果实在找不到，就选择与已有云朵重叠最小的位置（简单处理：再随机几次取重叠最小的）
+            if (!found) {
+                console.warn("无法找到完美位置，尝试选择较优位置");
+                let bestRect = null;
+                let minOverlap = Infinity;
+                for (let i = 0; i < 100; i++) {
+                    let tx = Math.random() * (window.innerWidth - cloudW - 40) + 20;
+                    let ty = Math.random() * (window.innerHeight - cloudH - 40) + 20;
+                    const tRect = {
+                        left: tx, top: ty,
+                        right: tx + cloudW, bottom: ty + cloudH
+                    };
+                    if (isOverlapButton(tRect)) continue;
+
+                    // 计算与所有云朵的重叠面积之和
+                    let totalOverlap = 0;
+                    for (let cloud of messagesOnScreen) {
+                        const oRect = {
+                            left: cloud.left, top: cloud.top,
+                            right: cloud.left + cloud.width, bottom: cloud.top + cloud.height
+                        };
+                        const overlapX = Math.max(0, Math.min(tRect.right, oRect.right) - Math.max(tRect.left, oRect.left));
+                        const overlapY = Math.max(0, Math.min(tRect.bottom, oRect.bottom) - Math.max(tRect.top, oRect.top));
+                        totalOverlap += overlapX * overlapY;
+                    }
+                    if (totalOverlap < minOverlap) {
+                        minOverlap = totalOverlap;
+                        bestRect = { left: tx, top: ty };
+                    }
+                }
+                if (bestRect) {
+                    posX = bestRect.left;
+                    posY = bestRect.top;
+                } else {
+                    // 保底：随机放一个地方
+                    posX = Math.random() * (window.innerWidth - cloudW - 40) + 20;
+                    posY = Math.random() * (window.innerHeight - cloudH - 40) + 20;
+                }
+            }
+
+            // 3. 正式创建云朵并显示
+            const bubble = document.createElement('div');
+            bubble.className = 'cloud-bubble';
+            if (item.type === 'video') bubble.classList.add('has-video');
+            const randomColor = cloudColors[Math.floor(Math.random() * cloudColors.length)];
+            bubble.style.backgroundColor = randomColor;
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'cloud-name';
+            nameDiv.textContent = item.name;
+            const textDiv = document.createElement('div');
+            textDiv.className = 'cloud-text';
+            textDiv.textContent = item.text;
+
+            bubble.appendChild(nameDiv);
+            bubble.appendChild(textDiv);
+
+            // 视频处理
+            if (item.type === 'video' && item.src) {
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
+                const video = document.createElement('video');
+                video.src = item.src;
+                video.controls = true;
+                video.playsInline = true;
+                video.muted = false;
+                video.autoplay = true;
+
+                video.onplay = () => {
+                    currentVideoObj = video;
+                    if (currentAudioObj) {
+                        currentAudioObj.pause();
+                        currentAudioObj = null;
+                    }
+                    bgMusic.volume = BG_VOLUME_DUCKING;
+                };
+                video.onended = () => {
+                    currentVideoObj = null;
+                    bgMusic.volume = BG_VOLUME_NORMAL;
+                };
+                video.play().catch(() => {
+                    video.muted = true;
+                    video.play().then(() => {
+                        bgMusic.volume = BG_VOLUME_DUCKING;
+                    }).catch(e => console.log("视频无法自动播放"));
+                });
+
+                videoWrapper.appendChild(video);
+                bubble.appendChild(videoWrapper);
+            }
+
+            bubble.style.left = posX + 'px';
+            bubble.style.top = posY + 'px';
+            container.appendChild(bubble);
+
+            // 存储云朵信息（用于后续碰撞）
+            messagesOnScreen.push({
+                element: bubble,
+                left: posX,
+                top: posY,
+                width: cloudW,
+                height: cloudH
+            });
+
+            // 注意：不再自动移除旧云朵，保证所有消息都保留在屏幕上
+        }
+
+        // 以下为特效函数（保持不变）
+        function createCakeRain() {
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const cake = document.createElement('div');
+                    cake.className = 'cake';
+                    cake.innerHTML = '🎂';
+                    cake.style.left = Math.random() * window.innerWidth + 'px';
+                    cake.style.top = '-50px';
+                    cake.style.fontSize = (Math.random() * 20 + 25) + 'px';
+                    const duration = Math.random() * 4 + 3;
+                    cake.style.animationDuration = duration + 's';
+                    container.appendChild(cake);
+                    setTimeout(() => cake.remove(), duration * 1000);
+                }, i * 100);
+            }
+        }
+
+        function createFireworks(x, y) {
+            for (let i = 0; i < 300; i++) {
+                const fw = document.createElement('div');
+                fw.className = 'firework';
+                const colors = ['#ff5252', '#ffd700', '#4caf50', '#2196f3', '#e91e63', '#ffffff', '#ff9800'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                fw.style.backgroundColor = color;
+                fw.style.color = color;
+                fw.style.left = x + 'px';
+                fw.style.top = y + 'px';
+                container.appendChild(fw);
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 150 + 80;
+                const dur = Math.random() * 1000 + 800;
+                const endX = x + Math.cos(angle) * dist;
+                const endY = y + Math.sin(angle) * dist;
+                let startT = null;
+                const anim = (ts) => {
+                    if (!startT) startT = ts;
+                    const p = (ts - startT) / dur;
+                    if (p < 1) {
+                        fw.style.left = (x + (endX - x) * p) + 'px';
+                        fw.style.top = (y + (endY - y) * p) + 'px';
+                        fw.style.opacity = 1 - p;
+                        fw.style.transform = `scale(${1 - p})`;
+                        requestAnimationFrame(anim);
+                    } else fw.remove();
+                };
+                requestAnimationFrame(anim);
+            }
+        }
+
+        function createHearts() {
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const h = document.createElement('div');
+                    h.className = 'heart';
+                    h.innerHTML = '💖';
+                    h.style.left = Math.random() * 100 + 'vw';
+                    h.style.animationDuration = (Math.random() * 3 + 5) + 's';
+                    heartsContainer.appendChild(h);
+                    setTimeout(() => h.remove(), 8000);
+                }, i * 200);
+            }
+        }
+
+        function handleClick() {
+            if (!isMusicStarted) {
+                bgMusic.play().then(() => { isMusicStarted = true; }).catch(error => { });
+            }
+
+            if (currentIndex < birthdayMessages.length) {
+                const item = birthdayMessages[currentIndex];
+
+                if (item.type === 'video') {
+                    showCloudAtRandomPosition(item, false);
+                } else {
+                    showCloudAtRandomPosition(item, false);
+                    playAudio(item.src);
+                }
+
+                const rect = mainButton.getBoundingClientRect();
+                createFireworks(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                createCakeRain();
+                createHearts();
+                currentIndex++;
+            } else {
+                // 所有消息展示完毕，显示最终祝福（仅一次）
+                if (!finalShown) {
+                    setTimeout(() => {
+                        showCloudAtRandomPosition({
+                            name: "世上所有爱你的人",
+                            text: "🎉🎉🎉🎉🎉 生日快乐 🎉🎉🎉🎉🎉🎉🎉🎉🎉愿你每一天都充满阳光和爱🎉🎉🎉🎉🎉🎉🎉🎉🎉",
+                            type: "text"
+                        }, true);
+
+                        const rect = mainButton.getBoundingClientRect();
+                        createFireworks(window.innerWidth / 2, window.innerHeight / 2);
+                        createFireworks(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                        createCakeRain();
+                        createHearts();
+                    }, 1000);
+
+                    // 每隔几秒加点烟花气氛（但避免干扰，减少频率）
+                    setInterval(() => {
+                        const x = Math.random() * window.innerWidth;
+                        const y = Math.random() * window.innerHeight;
+                        createFireworks(x, y);
+
+                        createCakeRain();
+                        createHearts();
+                    }, 1000);
+                }
+            }
+        }
+
+        mainButton.addEventListener('click', handleClick);
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); handleClick(); }
+        });
+        mainButton.addEventListener('touchend', (e) => { e.preventDefault(); handleClick(); });
+
+
+        
+    </script>
+</body>
+</html>
